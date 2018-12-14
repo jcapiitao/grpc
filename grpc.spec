@@ -1,5 +1,5 @@
 Name: grpc
-Version: 1.17.0
+Version: 1.17.1
 Release: 1%{?dist}
 Summary: Modern, open source, high-performance remote procedure call (RPC) framework
 License: ASL 2.0
@@ -14,6 +14,12 @@ BuildRequires: openssl-devel
 BuildRequires: c-ares-devel
 BuildRequires: gflags-devel
 BuildRequires: gtest-devel
+BuildRequires: zlib-devel
+BuildRequires: gperftools-devel
+
+BuildRequires: python3-devel
+BuildRequires: python3-setuptools
+BuildRequires: python3-Cython
 
 Patch0: 0001-enforce-system-crypto-policies.patch
 # https://github.com/grpc/grpc/pull/15532
@@ -62,6 +68,14 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 %description devel
 Development headers and files for gRPC libraries.
 
+%package -n python3-grpcio
+Summary: Python language bindings for grpc, remote procedure call (RPC) framework
+Requires: %{name}%{?_isa} = %{version}-%{release}
+%{?python_provide:%python_provide python3-%{pypi_name}}
+
+%description -n python3-grpcio
+Python3 bindings for gRPC library.
+
 %prep
 %autosetup -p1
 sed -i 's:^prefix ?= .*:prefix ?= %{_prefix}:' Makefile
@@ -71,10 +85,19 @@ sed -i 's:^GTEST_LIB =.*::' Makefile
 %build
 %make_build shared plugins
 
+# build python module
+export GRPC_PYTHON_BUILD_WITH_CYTHON=True
+export GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=True
+export GRPC_PYTHON_BUILD_SYSTEM_ZLIB=True
+export GRPC_PYTHON_BUILD_SYSTEM_CARES=True
+export CFLAGS="%optflags"
+%py3_build
+
 %install
 make install prefix="%{buildroot}%{_prefix}"
 make install-grpc-cli prefix="%{buildroot}%{_prefix}"
 find %{buildroot} -type f -name '*.a' -exec rm -f {} \;
+%py3_install
 
 %ldconfig_scriptlets
 
@@ -100,6 +123,14 @@ find %{buildroot} -type f -name '*.a' -exec rm -f {} \;
 %{_includedir}/grpc++
 %{_includedir}/grpcpp
 
+%files -n python3-grpcio
+%license LICENSE
+%{python3_sitearch}/grpc
+%{python3_sitearch}/grpcio-%{version}-py?.?.egg-info
+
 %changelog
+* Fri Dec 14 2018 Sergey Avseyev <sergey.avseyev@gmail.com> - 1.17.1-1
+- Update to 1.17.1 and package python bindings
+
 * Fri Dec 07 2018 Sergey Avseyev <sergey.avseyev@gmail.com> - 1.17.0-1
 - Initial revision
