@@ -24,10 +24,8 @@ BuildRequires: python3-Cython
 Patch0: 0001-enforce-system-crypto-policies.patch
 # https://github.com/grpc/grpc/pull/15532
 Patch1: 0002-patch-from-15532.patch
-
-%if 0%{?fedora} < 30
+# F29 and older has too old protobuf without ruby plugin
 Patch2: 0001-Do-not-build-the-Ruby-plugin.patch
-%endif
 
 %description
 gRPC is a modern open source high performance RPC framework that can run in any
@@ -81,7 +79,12 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 Python3 bindings for gRPC library.
 
 %prep
-%autosetup -p1
+%autosetup -N
+%patch0 -p1
+%patch1 -p1
+%if 0%{?fedora} && 0%{?fedora} < 30
+%patch2 -p1
+%endif
 sed -i 's:^prefix ?= .*:prefix ?= %{_prefix}:' Makefile
 sed -i 's:$(prefix)/lib:$(prefix)/%{_lib}:' Makefile
 sed -i 's:^GTEST_LIB =.*::' Makefile
