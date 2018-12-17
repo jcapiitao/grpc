@@ -1,6 +1,6 @@
 Name: grpc
 Version: 1.17.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Modern, open source, high-performance remote procedure call (RPC) framework
 License: ASL 2.0
 URL: https://www.grpc.io
@@ -133,6 +133,9 @@ find %{buildroot} -type f -name '*.a' -exec rm -f {} \;
 %{python3_sitearch}/grpcio-%{version}-py?.?.egg-info
 
 %changelog
+* Mon Dec 17 2018 Sergey Avseyev <sergey.avseyev@gmail.com> - 1.17.1-2
+- Build without ruby plugin for Fedora < 30 (Thanks to Mathieu Bridon)
+
 * Fri Dec 14 2018 Sergey Avseyev <sergey.avseyev@gmail.com> - 1.17.1-1
 - Update to 1.17.1 and package python bindings
 
