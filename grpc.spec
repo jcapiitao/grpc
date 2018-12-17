@@ -25,6 +25,10 @@ Patch0: 0001-enforce-system-crypto-policies.patch
 # https://github.com/grpc/grpc/pull/15532
 Patch1: 0002-patch-from-15532.patch
 
+%if 0%{?fedora} < 30
+Patch2: 0001-Do-not-build-the-Ruby-plugin.patch
+%endif
+
 %description
 gRPC is a modern open source high performance RPC framework that can run in any
 environment. It can efficiently connect services in and across data centers
