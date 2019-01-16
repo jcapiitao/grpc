@@ -1,6 +1,6 @@
 Name: grpc
-Version: 1.17.1
-Release: 3%{?dist}
+Version: 1.18.0
+Release: 1%{?dist}
 Summary: Modern, open source, high-performance remote procedure call (RPC) framework
 License: ASL 2.0
 URL: https://www.grpc.io
@@ -26,6 +26,9 @@ Patch0: 0001-enforce-system-crypto-policies.patch
 Patch1: 0002-patch-from-15532.patch
 # F29 and older has too old protobuf without ruby plugin
 Patch2: 0001-Do-not-build-the-Ruby-plugin.patch
+# https://github.com/grpc/grpc/pull/17732
+Patch3: 0003-tcp_posix.cc-fix-typo-in-bitwise-condition.patch
+Patch4: 0004-use-shell-loop-instead-makefile-function.patch
 
 %description
 gRPC is a modern open source high performance RPC framework that can run in any
@@ -82,6 +85,8 @@ Python3 bindings for gRPC library.
 %autosetup -N
 %patch0 -p1
 %patch1 -p1
+%patch3 -p1
+%patch4 -p1
 %if 0%{?fedora} && 0%{?fedora} < 30
 %patch2 -p1
 %endif
@@ -136,6 +141,9 @@ find %{buildroot} -type f -name '*.a' -exec rm -f {} \;
 %{python3_sitearch}/grpcio-%{version}-py?.?.egg-info
 
 %changelog
+* Wed Jan 16 2019 Sergey Avseyev <sergey.avseyev@gmail.com> - 1.18.0-1
+- Update to 1.18.0
+
 * Mon Dec 17 2018 Igor Gnatenko <ignatenkobrain@fedoraproject.org> - 1.17.1-3
 - Properly store patch in SRPM
 
