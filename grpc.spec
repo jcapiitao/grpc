@@ -1,6 +1,6 @@
 Name: grpc
-Version: 1.18.0
-Release: 2%{?dist}
+Version: 1.20.1
+Release: 1%{?dist}
 Summary: Modern, open source, high-performance remote procedure call (RPC) framework
 License: ASL 2.0
 URL: https://www.grpc.io
@@ -21,14 +21,13 @@ BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-Cython
 
-Patch0: 0001-enforce-system-crypto-policies.patch
+Patch0: grpc-0001-enforce-system-crypto-policies.patch
 # https://github.com/grpc/grpc/pull/15532
-Patch1: 0002-patch-from-15532.patch
-# F29 and older has too old protobuf without ruby plugin
-Patch2: 0001-Do-not-build-the-Ruby-plugin.patch
+Patch1: grpc-0002-patch-from-15532.patch
 # https://github.com/grpc/grpc/pull/17732
-Patch3: 0003-tcp_posix.cc-fix-typo-in-bitwise-condition.patch
-Patch4: 0004-use-shell-loop-instead-makefile-function.patch
+# Patch3: 0003-tcp_posix.cc-fix-typo-in-bitwise-condition.patch
+Patch2: grpc-0003-use-shell-loop-instead-makefile-function.patch
+Patch3: grpc-0004-use-gettid-from-glibc.patch
 
 %description
 gRPC is a modern open source high performance RPC framework that can run in any
@@ -85,11 +84,8 @@ Python3 bindings for gRPC library.
 %autosetup -N
 %patch0 -p1
 %patch1 -p1
-%patch3 -p1
-%patch4 -p1
-%if 0%{?fedora} && 0%{?fedora} < 30
 %patch2 -p1
-%endif
+%patch3 -p1
 sed -i 's:^prefix ?= .*:prefix ?= %{_prefix}:' Makefile
 sed -i 's:$(prefix)/lib:$(prefix)/%{_lib}:' Makefile
 sed -i 's:^GTEST_LIB =.*::' Makefile
@@ -141,6 +137,9 @@ find %{buildroot} -type f -name '*.a' -exec rm -f {} \;
 %{python3_sitearch}/grpcio-%{version}-py?.?.egg-info
 
 %changelog
+* Fri May 17 2019 Sergey Avseyev <sergey.avseyev@gmail.com> - 1.20.1-1
+- Update to 1.20.1
+
 * Fri Feb 01 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1.18.0-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
 

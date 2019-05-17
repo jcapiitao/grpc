@@ -1,14 +1,14 @@
-From d75addf6b5ef94ba9f6b5684523a587c6dc35ccb Mon Sep 17 00:00:00 2001
+From 58691d6301984afe2dbdab52e1cb2ea0d83a3686 Mon Sep 17 00:00:00 2001
 From: Sergey Avseyev <sergey.avseyev@gmail.com>
 Date: Fri, 16 Nov 2018 15:03:30 +0300
-Subject: [PATCH] patch from #15532
+Subject: [PATCH 2/4] patch from #15532
 
 ---
  Makefile | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 8469a5fd50..0d06d1fc29 100644
+index 53e70c95ba..2bdfa6395d 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -348,7 +348,7 @@ HOST_LD ?= $(LD)
@@ -20,7 +20,7 @@ index 8469a5fd50..0d06d1fc29 100644
  ifeq ($(SYSTEM),Darwin)
  CXXFLAGS += -stdlib=libc++
  endif
-@@ -7899,7 +7899,7 @@ LIBBORINGSSL_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename
+@@ -8007,7 +8007,7 @@ LIBBORINGSSL_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename
  
  $(LIBBORINGSSL_OBJS): CPPFLAGS += -Ithird_party/boringssl/include -fvisibility=hidden -DOPENSSL_NO_ASM -D_GNU_SOURCE -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX
  $(LIBBORINGSSL_OBJS): CXXFLAGS += -fno-rtti -fno-exceptions
@@ -29,7 +29,7 @@ index 8469a5fd50..0d06d1fc29 100644
  
  $(LIBDIR)/$(CONFIG)/libboringssl.a: $(ZLIB_DEP) $(CARES_DEP) $(ADDRESS_SORTING_DEP)  $(LIBBORINGSSL_OBJS) 
  	$(E) "[AR]      Creating $@"
-@@ -10094,7 +10094,7 @@ PUBLIC_HEADERS_C += \
+@@ -8251,7 +8251,7 @@ PUBLIC_HEADERS_C += \
  LIBARES_OBJS = $(addprefix $(OBJDIR)/$(CONFIG)/, $(addsuffix .o, $(basename $(LIBARES_SRC))))
  
  $(LIBARES_OBJS): CPPFLAGS += -Ithird_party/cares -Ithird_party/cares/cares -fvisibility=hidden -D_GNU_SOURCE $(if $(subst Darwin,,$(SYSTEM)),,-Ithird_party/cares/config_darwin) $(if $(subst FreeBSD,,$(SYSTEM)),,-Ithird_party/cares/config_freebsd) $(if $(subst Linux,,$(SYSTEM)),,-Ithird_party/cares/config_linux) $(if $(subst OpenBSD,,$(SYSTEM)),,-Ithird_party/cares/config_openbsd) -DWIN32_LEAN_AND_MEAN -D_HAS_EXCEPTIONS=0 -DNOMINMAX $(if $(subst MINGW32,,$(SYSTEM)),-DHAVE_CONFIG_H,)
@@ -39,5 +39,5 @@ index 8469a5fd50..0d06d1fc29 100644
  $(LIBDIR)/$(CONFIG)/libares.a:  $(LIBARES_OBJS) 
  	$(E) "[AR]      Creating $@"
 -- 
-2.19.1
+2.21.0
 
