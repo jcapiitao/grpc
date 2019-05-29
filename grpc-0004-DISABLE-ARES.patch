@@ -1,0 +1,38 @@
+From 627826854c00fe4f9763288a5f3d0073bfeeb6c4 Mon Sep 17 00:00:00 2001
+From: yatinkarel <ykarel@redhat.com>
+Date: Thu, 30 May 2019 13:18:35 +0530
+Subject: [PATCH] DISABLE ARES and change proto-path
+
+---
+ Makefile | 2 +-
+ setup.py | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 53e70c95ba..7ed4d8e375 100644
+--- a/Makefile
++++ b/Makefile
+@@ -353,7 +353,7 @@ ifeq ($(SYSTEM),Darwin)
+ CXXFLAGS += -stdlib=libc++
+ endif
+ CXXFLAGS += -Wnon-virtual-dtor
+-CPPFLAGS += -g -Wall -Wextra -Werror -Wno-long-long -Wno-unused-parameter -DOSATOMIC_USE_INLINED=1 -Wno-deprecated-declarations -Ithird_party/nanopb -DPB_FIELD_32BIT
++CPPFLAGS += -g -Wall -Wextra -Werror -Wno-long-long -Wno-unused-parameter -DOSATOMIC_USE_INLINED=1 -Wno-deprecated-declarations -Ithird_party/nanopb -DPB_FIELD_32BIT -DGRPC_ARES=0
+ COREFLAGS += -fno-rtti -fno-exceptions
+ LDFLAGS += -g
+ 
+diff --git a/setup.py b/setup.py
+index 1e205bdf91..1ece3f6f61 100644
+--- a/setup.py
++++ b/setup.py
+@@ -161,6 +161,7 @@ if EXTRA_ENV_COMPILE_ARGS is None:
+   elif "darwin" in sys.platform:
+     EXTRA_ENV_COMPILE_ARGS += ' -stdlib=libc++ -fvisibility=hidden -fno-wrapv -fno-exceptions'
+ EXTRA_ENV_COMPILE_ARGS += ' -DPB_FIELD_32BIT'
++EXTRA_ENV_COMPILE_ARGS += ' -DGRPC_ARES=0'
+ 
+ if EXTRA_ENV_LINK_ARGS is None:
+   EXTRA_ENV_LINK_ARGS = ''
+-- 
+2.20.1
+

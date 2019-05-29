@@ -1,3 +1,12 @@
+%if 0%{?fedora} || 0%{?rhel} > 7
+# Do not build python3 subpackage on EL7 and python2 on El > 8
+%bcond_without python3
+%bcond_with python2
+%else
+%bcond_with python3
+%bcond_without python2
+%endif
+
 Name: grpc
 Version: 1.20.1
 Release: 1%{?dist}
@@ -17,17 +26,23 @@ BuildRequires: gtest-devel
 BuildRequires: zlib-devel
 BuildRequires: gperftools-devel
 
+%if %{with python2}
+BuildRequires: python2-devel
+BuildRequires: python2-setuptools
+BuildRequires: python2-Cython
+%endif
+
+%if %{with python3}
 BuildRequires: python3-devel
 BuildRequires: python3-setuptools
 BuildRequires: python3-Cython
+%endif
 
 Patch0: grpc-0001-enforce-system-crypto-policies.patch
-# https://github.com/grpc/grpc/pull/15532
-Patch1: grpc-0002-patch-from-15532.patch
 # https://github.com/grpc/grpc/pull/17732
 # Patch3: 0003-tcp_posix.cc-fix-typo-in-bitwise-condition.patch
 Patch2: grpc-0003-use-shell-loop-instead-makefile-function.patch
-Patch3: grpc-0004-use-gettid-from-glibc.patch
+Patch4: grpc-0004-DISABLE-ARES.patch
 
 %description
 gRPC is a modern open source high performance RPC framework that can run in any
@@ -72,6 +87,17 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 %description devel
 Development headers and files for gRPC libraries.
 
+%if %{with python2}
+%package -n python2-grpcio
+Summary: Python language bindings for grpc, remote procedure call (RPC) framework
+Requires: %{name}%{?_isa} = %{version}-%{release}
+%{?python_provide:%python_provide python2-%{pypi_name}}
+
+%description -n python2-grpcio
+Python2 bindings for gRPC library.
+%endif
+
+%if %{with python3}
 %package -n python3-grpcio
 Summary: Python language bindings for grpc, remote procedure call (RPC) framework
 Requires: %{name}%{?_isa} = %{version}-%{release}
@@ -79,13 +105,13 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 
 %description -n python3-grpcio
 Python3 bindings for gRPC library.
+%endif
 
 %prep
 %autosetup -N
 %patch0 -p1
-%patch1 -p1
 %patch2 -p1
-%patch3 -p1
+%patch4 -p1
 sed -i 's:^prefix ?= .*:prefix ?= %{_prefix}:' Makefile
 sed -i 's:$(prefix)/lib:$(prefix)/%{_lib}:' Makefile
 sed -i 's:^GTEST_LIB =.*::' Makefile
@@ -99,15 +125,30 @@ export GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=True
 export GRPC_PYTHON_BUILD_SYSTEM_ZLIB=True
 export GRPC_PYTHON_BUILD_SYSTEM_CARES=True
 export CFLAGS="%optflags"
+%if %{with python3}
 %py3_build
+%endif
+%if %{with python2}
+%py2_build
+%endif
 
 %install
 make install prefix="%{buildroot}%{_prefix}"
 make install-grpc-cli prefix="%{buildroot}%{_prefix}"
 find %{buildroot} -type f -name '*.a' -exec rm -f {} \;
+%if %{with python3}
 %py3_install
+%endif
+%if %{with python2}
+%py2_install
+%endif
 
+%if 0%{?fedora} || 0%{?rhel} > 7
 %ldconfig_scriptlets
+%else
+%post -p /sbin/ldconfig
+%postun -p /sbin/ldconfig
+%endif
 
 %files
 %doc README.md
@@ -131,10 +172,19 @@ find %{buildroot} -type f -name '*.a' -exec rm -f {} \;
 %{_includedir}/grpc++
 %{_includedir}/grpcpp
 
+%if %{with python2}
+%files -n python2-grpcio
+%license LICENSE
+%{python2_sitearch}/grpc
+%{python2_sitearch}/grpcio-%{version}-py?.?.egg-info
+%endif
+
+%if %{with python3}
 %files -n python3-grpcio
 %license LICENSE
 %{python3_sitearch}/grpc
 %{python3_sitearch}/grpcio-%{version}-py?.?.egg-info
+%endif
 
 %changelog
 * Fri May 17 2019 Sergey Avseyev <sergey.avseyev@gmail.com> - 1.20.1-1
