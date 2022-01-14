@@ -9,7 +9,7 @@
 
 # We need to use C++17 to link against the system abseil-cpp, or we get linker
 # errors.
-%global cpp_std 17
+%global cpp_std 11
 
 # However, we also get linker errors building the tests if we link against the
 # copy of gtest in Fedora (compiled with C++11). The exact root cause is not
@@ -152,11 +152,11 @@ BuildRequires:  chrpath
 
 BuildRequires:  pkgconfig(zlib)
 BuildRequires:  cmake(gflags)
-BuildRequires:  pkgconfig(protobuf)
-BuildRequires:  protobuf-compiler
+BuildRequires:  pkgconfig(protobuf) >= 3.12
+BuildRequires:  protobuf-compiler >= 3.12
 BuildRequires:  pkgconfig(re2)
 BuildRequires:  pkgconfig(openssl)
-BuildRequires:  cmake(c-ares)
+BuildRequires:  pkgconfig(libcares)
 BuildRequires:  abseil-cpp-devel
 # Sets XXH_INCLUDE_ALL, which means xxhash is used as a header-only library
 BuildRequires:  pkgconfig(libxxhash)
@@ -210,7 +210,7 @@ BuildRequires:  python3dist(cython) > 0.23
 # grpcio_status (src/python/grpcio_status/setup.py) install_requires:
 # grpcio_testing (src/python/grpcio_testing/setup.py) install_requires:
 # grpcio_tests (src/python/grpcio_tests/setup.py) install_requires:
-BuildRequires:  python3dist(protobuf) >= 3.6.0
+BuildRequires:  python3dist(protobuf) >= 3.12
 # grpcio_tools (tools/distrib/python/grpcio_tools/setup.py) install_requires
 # also has:
 #   protobuf>=3.5.0.post1
@@ -418,7 +418,7 @@ C++ language bindings for gRPC.
 Summary:        Protocol buffers compiler plugins for gRPC
 # License:        same as base package
 Requires:       grpc%{?_isa} = %{version}-%{release}
-Requires:       protobuf-compiler
+Requires:       protobuf-compiler >= 3.12
 
 %description plugins
 Plugins to the protocol buffers compiler to generate gRPC sources.
@@ -453,7 +453,7 @@ Requires:       grpc-cpp%{?_isa} = %{version}-%{release}
 # grpc/impl/codegen/port_platform.h includes linux/version.h
 Requires:       kernel-headers%{?_isa}
 # grpcpp/impl/codegen/config_protobuf.h includes google/protobuf/…
-Requires:       pkgconfig(protobuf)
+Requires:       pkgconfig(protobuf) >= 3.12
 # grpcpp/test/mock_stream.h includes gmock/gmock.h
 Requires:       pkgconfig(gmock)
 # grpcpp/impl/codegen/sync.h includes absl/synchronization/mutex.h
@@ -462,7 +462,7 @@ Requires:       abseil-cpp-devel%{?_isa}
 # grpc.pc has -lre2
 Requires:       pkgconfig(re2)
 # grpc.pc has -lcares
-Requires:       cmake(c-ares)
+Requires:       pkgconfig(libcares)
 # grpc.pc has -lz
 Requires:       pkgconfig(zlib)
 
@@ -616,6 +616,7 @@ Testing utilities for gRPC Python.
 
 %prep
 %autosetup -p1
+rm Makefile
 
 echo '===== Patching grpcio_tools for system protobuf =====' 2>&1
 # Build python3-grpcio_tools against system protobuf packages instead of
@@ -880,7 +881,7 @@ echo '===== Building Python grpcio package =====' 2>&1
 # Since there are some interdepndencies in the Python packages (e.g., many have
 # setup_requires: grpcio-tools), we do temporary installs of built packages
 # into a local directory as needed, and add it to the PYTHONPATH.
-PYROOT="${PWD}/%{_vpath_builddir}/pyroot"
+PYROOT="${PWD}/pyroot"
 if [ -n "${PYTHONPATH-}" ]; then PYTHONPATH="${PYTHONPATH}:"; fi
 PYTHONPATH="${PYTHONPATH-}${PYROOT}%{python3_sitelib}"
 PYTHONPATH="${PYTHONPATH}:${PYROOT}%{python3_sitearch}"
@@ -964,15 +965,14 @@ done
 
 %if %{with core_tests}
 # For some reason, grpc_cli is not installed. Do it manually.
-install -t '%{buildroot}%{_bindir}' -p -D '%{_vpath_builddir}/grpc_cli'
+install -t '%{buildroot}%{_bindir}' -p -D 'grpc_cli'
 # grpc_cli build does not respect CMAKE_INSTALL_RPATH
 # https://github.com/grpc/grpc/issues/25176
 chrpath --delete '%{buildroot}%{_bindir}/grpc_cli'
 
 # This library is also required for grpc_cli; it is built as part of the test
 # code.
-install -t '%{buildroot}%{_libdir}' -p \
-    %{_vpath_builddir}/libgrpc++_test_config.so.*
+install -t '%{buildroot}%{_libdir}' -p libgrpc++_test_config.so.*
 chrpath --delete '%{buildroot}%{_libdir}/'libgrpc++_test_config.so.*
 
 install -d '%{buildroot}/%{_mandir}/man1'
@@ -1034,7 +1034,7 @@ find '%{buildroot}' -type f -name 'roots.pem' |
   while read -r fn
   do
     ln -s -f "%{buildroot}%{sysbundle}" "${fn}"
-    symlinks -c -o "${fn}"
+    symlinks -c -o "$(dirname ${fn})"
   done
 
 rm -rvf "%{buildroot}$(dirname '%{sysbundle}')"
@@ -1064,7 +1064,7 @@ PORT_SERVER_PORT="$(awk '
 # likely to be difficult to get help from upstream for any failures here. Note
 # that some of these tests would never work in an environment without Internet
 # access.
-{ sed -r -e '/^(#|$)/d' -e 's|^(.*)$|%{_vpath_builddir}/\1_test|' <<'EOF'
+{ sed -r -e '/^(#|$)/d' -e 's|^(.*)$|\1_test|' <<'EOF'
 
 # Requires (or may require) network:
 resolve_address_using_ares_resolver
@@ -1776,7 +1776,7 @@ xds_end2end
 EOF
 } | xargs -r chmod -v a-x
 
-find %{_vpath_builddir} -type f -perm /0111 -name '*_test' | sort |
+find . -type f -perm /0111 -name '*_test' | sort |
   while read -r testexe
   do
     echo "==== $(date -u --iso-8601=ns): $(basename "${testexe}") ===="
